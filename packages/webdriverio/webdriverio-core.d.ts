@@ -520,7 +520,7 @@ declare namespace WebdriverIO {
 
     type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
     type CDPSession = Partial<import('puppeteer').CDPSession>;
-    type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
+    type MockOverwriteFunction = (request: Matches, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
 
     type MockResponseParams = {
@@ -529,10 +529,10 @@ declare namespace WebdriverIO {
     }
 
     type MockFilterOptions = {
-        method?: string,
-        headers?: Record<string, string>,
-        responseHeaders?: Record<string, string>,
-        statusCode?: number,
+        method?: string | ((method: string) => boolean),
+        headers?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+        responseHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+        statusCode?: number | ((statusCode: number) => boolean),
         postData?: string | ((payload: string | undefined) => boolean)
     }
 
@@ -608,10 +608,12 @@ declare namespace WebdriverIO {
          * characters like Left arrow or Back space. WebdriverIO will take care of
          * translating them into unicode characters. You’ll find all supported characters
          * [here](https://w3c.github.io/webdriver/webdriver-spec.html#keyboard-actions).
-         * To do that, the value has to correspond to a key from the table.
+         * To do that, the value has to correspond to a key from the table. It can be disabled
+         * by setting `translateToUnicode` optional parameter to false.
          */
         addValue(
-            value: string | number | boolean | object | any[]
+            value: string | number | boolean | object | any[],
+            options?: AddValueOptions
         ): Promise<void>;
 
         /**
@@ -851,10 +853,12 @@ declare namespace WebdriverIO {
          * unicode characters like Left arrow or Back space. WebdriverIO will take care of
          * translating them into unicode characters. You’ll find all supported characters
          * [here](https://w3c.github.io/webdriver/webdriver-spec.html#keyboard-actions).
-         * To do that, the value has to correspond to a key from the table.
+         * To do that, the value has to correspond to a key from the table. It can be disabled
+         * by setting `translateToUnicode` optional parameter to false.
          */
         setValue(
-            value: string | number | boolean | object | any[]
+            value: string | number | boolean | object | any[],
+            options?: AddValueOptions
         ): Promise<void>;
 
         /**
@@ -1258,5 +1262,14 @@ declare namespace WebdriverIO {
         ): Promise<boolean>;
     }
 
-    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
+         /**
+         * internal usage only. To run in watch mode see https://webdriver.io/docs/watcher.html
+         */
+        watch?: never;
+    }
+
+    interface AddValueOptions {
+        translateToUnicode?: boolean
+    }
 }
